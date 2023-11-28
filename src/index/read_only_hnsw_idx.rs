@@ -1,25 +1,22 @@
 use std::collections::{BinaryHeap, HashSet};
 
 use fixedbitset::FixedBitSet;
-use rkyv::{vec::ArchivedVec, Archive, Deserialize, Serialize};
+use rkyv::{Archive, Deserialize, Serialize};
 
-use crate::core::{metrics, neighbor::Neighbor};
+use crate::core::{metrics, neighbor::Neighbor, node::IdxType};
 
 use super::hnsw_idx::HNSWIndex;
 
-type Node = (Vec<f32>, u16);
-type ArchivedNode = (ArchivedVec<f32>, u16);
-
 #[derive(Archive, Serialize, Deserialize)]
 #[archive(check_bytes)]
-pub struct ReadOnlyHNSWIndex {
+pub struct ReadOnlyHNSWIndex<T> {
     dimension: usize, // dimension
     n_constructed_items: usize,
     max_item: usize,
     cur_level: usize,                  //current level
     id2neighbor: Vec<Vec<Vec<usize>>>, //neight_id from level 1 to level _max_level
     id2neighbor0: Vec<Vec<usize>>,     //neigh_id at level 0
-    nodes: Vec<Node>,                  // data saver
+    nodes: Vec<(Vec<f32>, T)>,         // data saver
     root_id: usize,                    //root of hnsw
     has_removed: bool,
     ef_search: usize,           // num of max candidates when searching
@@ -28,8 +25,8 @@ pub struct ReadOnlyHNSWIndex {
 }
 
 // convert from HNSWIndex to ReadOnlyHNSWIndex
-impl From<&HNSWIndex<f32, u16>> for ReadOnlyHNSWIndex {
-    fn from(hnsw: &HNSWIndex<f32, u16>) -> Self {
+impl<T: IdxType> From<&HNSWIndex<f32, T>> for ReadOnlyHNSWIndex<T> {
+    fn from(hnsw: &HNSWIndex<f32, T>) -> Self {
         let id2neighbor = hnsw
             ._id2neighbor
             .iter()
@@ -44,7 +41,12 @@ impl From<&HNSWIndex<f32, u16>> for ReadOnlyHNSWIndex {
         let nodes = hnsw
             ._nodes
             .iter()
-            .map(|n| (n.as_ref().vectors().clone(), n.as_ref().idx().unwrap()))
+            .map(|n| {
+                (
+                    n.as_ref().vectors().clone(),
+                    n.as_ref().idx().as_ref().unwrap().clone(),
+                )
+            })
             .collect();
 
         ReadOnlyHNSWIndex {
@@ -64,16 +66,9 @@ impl From<&HNSWIndex<f32, u16>> for ReadOnlyHNSWIndex {
     }
 }
 
-impl ArchivedReadOnlyHNSWIndex {
-    pub fn search(&self, item: &[f32], k: u32) -> Vec<u16> {
-        assert_eq!(item.len(), self.dimension());
-        self.node_search_k(item, k)
-            .iter()
-            .map(|x| x.0 .1)
-            .collect::<Vec<_>>()
-    }
-
-    fn node_search_k(&self, item: &[f32], k: u32) -> Vec<(&ArchivedNode, f32)> {
+impl<T: Archive> ArchivedReadOnlyHNSWIndex<T> {
+    pub fn search(&self, item: &[f32], k: u32) -> Vec<(&<T as Archive>::Archived, f32)> {
+        // todo: check dimentions on item
         let mut ret: BinaryHeap<Neighbor<f32, usize>> = self.search_knn(item, k).unwrap();
         let mut result = Vec::with_capacity(k as usize);
         let mut result_idx: Vec<(usize, f32)> = Vec::with_capacity(k as usize);
@@ -86,7 +81,7 @@ impl ArchivedReadOnlyHNSWIndex {
         }
         for i in 0..result_idx.len() {
             let cur_id = result_idx.len() - i - 1;
-            result.push((&self.nodes[result_idx[cur_id].0], result_idx[cur_id].1));
+            result.push((&self.nodes[result_idx[cur_id].0].1, result_idx[cur_id].1));
         }
         result
     }
