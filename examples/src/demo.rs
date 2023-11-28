@@ -1,4 +1,4 @@
-use hora::core::ann_index::ANNIndex;
+use kolla::core::ann_index::ANNIndex;
 use rand::{thread_rng, Rng};
 use rand_distr::{Distribution, Normal};
 
@@ -18,15 +18,17 @@ pub fn demo() {
     }
 
     // init index
-    let mut index = hora::index::hnsw_idx::HNSWIndex::<f32, usize>::new(
+    let mut index = kolla::index::hnsw_idx::HNSWIndex::<f32, usize>::new(
         dimension,
-        &hora::index::hnsw_params::HNSWParams::<f32>::default(),
+        &kolla::index::hnsw_params::HNSWParams::<f32>::default(),
     );
     for (i, sample) in samples.iter().enumerate().take(n) {
         // add point
         index.add(sample, i).unwrap();
     }
-    index.build(hora::core::metrics::Metric::Euclidean).unwrap();
+    index
+        .build(kolla::core::metrics::Metric::Euclidean)
+        .unwrap();
 
     let mut rng = thread_rng();
     let target: usize = rng.gen_range(0..n);
