@@ -22,30 +22,30 @@ use std::sync::RwLock;
 
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct HNSWIndex<E: node::FloatElement, T: node::IdxType> {
-    _dimension: usize, // dimension
-    _n_items: usize,   // next item count
-    _n_constructed_items: usize,
-    _max_item: usize,
-    _n_neighbor: usize,  // neighbor num except level 0
-    _n_neighbor0: usize, // neight num of level 0
-    _max_level: usize,   //max level
-    _cur_level: usize,   //current level
+    pub(crate) _dimension: usize, // dimension
+    pub(crate) _n_items: usize,   // next item count
+    pub(crate) _n_constructed_items: usize,
+    pub(crate) _max_item: usize,
+    pub(crate) _n_neighbor: usize,  // neighbor num except level 0
+    pub(crate) _n_neighbor0: usize, // neight num of level 0
+    pub(crate) _max_level: usize,   //max level
+    pub(crate) _cur_level: usize,   //current level
     #[serde(skip_serializing, skip_deserializing)]
-    _id2neighbor: Vec<Vec<RwLock<Vec<usize>>>>, //neight_id from level 1 to level _max_level
+    pub(crate) _id2neighbor: Vec<Vec<RwLock<Vec<usize>>>>, //neight_id from level 1 to level _max_level
     #[serde(skip_serializing, skip_deserializing)]
-    _id2neighbor0: Vec<RwLock<Vec<usize>>>, //neigh_id at level 0
+    pub(crate) _id2neighbor0: Vec<RwLock<Vec<usize>>>, //neigh_id at level 0
     #[serde(skip_serializing, skip_deserializing)]
-    _nodes: Vec<Box<node::Node<E, T>>>, // data saver
+    pub(crate) _nodes: Vec<Box<node::Node<E, T>>>, // data saver
     #[serde(skip_serializing, skip_deserializing)]
-    _item2id: HashMap<T, usize>, //item_id to id in Hnsw
-    _root_id: usize,     //root of hnsw
-    _id2level: Vec<usize>,
-    _has_removed: bool,
-    _ef_build: usize,  // num of max candidates when building
-    _ef_search: usize, // num of max candidates when searching
+    pub(crate) _item2id: HashMap<T, usize>, //item_id to id in Hnsw
+    pub(crate) _root_id: usize, //root of hnsw
+    pub(crate) _id2level: Vec<usize>,
+    pub(crate) _has_removed: bool,
+    pub(crate) _ef_build: usize,  // num of max candidates when building
+    pub(crate) _ef_search: usize, // num of max candidates when searching
     #[serde(skip_serializing, skip_deserializing)]
-    _delete_ids: HashSet<usize>, //save deleted ids
-    mt: metrics::Metric, //compute metrics
+    pub(crate) _delete_ids: HashSet<usize>, //save deleted ids
+    pub(crate) mt: metrics::Metric, //compute metrics
 
     // use for serde
     _id2neighbor_tmp: Vec<Vec<Vec<usize>>>,

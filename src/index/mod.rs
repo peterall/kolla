@@ -6,5 +6,6 @@ pub mod hnsw_idx;
 pub mod hnsw_params;
 pub mod pq_idx;
 pub mod pq_params;
+pub mod read_only_hnsw_idx;
 pub mod ssg_idx;
 pub mod ssg_params;

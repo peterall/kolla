@@ -52,6 +52,7 @@ packed_simd = {version = "0.3.6", package = "packed_simd_2", optional = true}
 rand = "0.8.4"
 rayon = "^1.5"
 serde = {version = "^1.0", features = ["derive"]}
+rkyv = {version = "0.7", features = ["validation"] }
 
 [dev-dependencies]
 criterion = "0.3.4"

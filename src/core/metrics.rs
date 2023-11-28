@@ -1,8 +1,23 @@
 extern crate num;
 use crate::core::{calc::dot, node::FloatElement};
+use rkyv::bytecheck;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Eq,
+    PartialEq,
+    Serialize,
+    Deserialize,
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    bytecheck::CheckBytes,
+)]
+#[archive(as = "Metric")]
+#[repr(u32)]
 pub enum Metric {
     Unknown,
     Manhattan,
@@ -76,10 +91,8 @@ where
 {
     assert_eq!(vec1.len(), vec2.len());
     // smaller means closer.
-    Ok(
-        -dot(vec1, vec2).unwrap()
-            / (dot(vec1, vec1).unwrap().sqrt() * dot(vec2, vec2).unwrap().sqrt()),
-    )
+    Ok(-dot(vec1, vec2).unwrap()
+        / (dot(vec1, vec1).unwrap().sqrt() * dot(vec2, vec2).unwrap().sqrt()))
 }
 
 // (a/|a| - b/|b|)^2

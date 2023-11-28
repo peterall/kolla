@@ -90,10 +90,13 @@ to_idx_type!(u128);
 ///
 /// it contains a array of `FloatElement` and a index
 ///
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(
+    Clone, Debug, Default, Serialize, Deserialize, rkyv::Archive, rkyv::Serialize, rkyv::Deserialize,
+)]
+
 pub struct Node<E: FloatElement, T: IdxType> {
-    vectors: Vec<E>,
-    idx: Option<T>, // data id, it can be any type;
+    pub(crate) vectors: Vec<E>,
+    pub(crate) idx: Option<T>, // data id, it can be any type;
 }
 
 impl<E: FloatElement, T: IdxType> Node<E, T> {
