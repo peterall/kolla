@@ -68,7 +68,9 @@ impl<T: IdxType> From<&HNSWIndex<f32, T>> for ReadOnlyHNSWIndex<T> {
 
 impl<T: Archive> ArchivedReadOnlyHNSWIndex<T> {
     pub fn search(&self, item: &[f32], k: u32) -> Vec<(&<T as Archive>::Archived, f32)> {
-        // todo: check dimentions on item
+        if item.len() != self.dimension() {
+            panic!("item len not equal to dimension");
+        }
         let mut ret: BinaryHeap<Neighbor<f32, usize>> = self.search_knn(item, k).unwrap();
         let mut result = Vec::with_capacity(k as usize);
         let mut result_idx: Vec<(usize, f32)> = Vec::with_capacity(k as usize);
