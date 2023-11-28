@@ -7,7 +7,7 @@ use crate::core::{metrics, neighbor::Neighbor, node::IdxType};
 
 use super::hnsw_idx::HNSWIndex;
 
-#[derive(Archive, Serialize, Deserialize)]
+#[derive(Archive, Serialize, Deserialize, Default)]
 #[archive(check_bytes)]
 pub struct ReadOnlyHNSWIndex<T> {
     dimension: usize, // dimension
