@@ -722,7 +722,7 @@ impl<E: node::FloatElement + DeserializeOwned, T: node::IdxType + DeserializeOwn
 impl<E: node::FloatElement + DeserializeOwned, T: node::IdxType + DeserializeOwned>
     HNSWIndex<E, T>
 {
-    fn load_from_bytes(data: &[u8]) -> Result<Self, &'static str> {
+    pub fn load_from_bytes(data: &[u8]) -> Result<Self, &'static str> {
         let mut instance: HNSWIndex<E, T> = bincode::deserialize(data).unwrap();
         instance._nodes = instance
             ._nodes_tmp
@@ -762,7 +762,7 @@ impl<E: node::FloatElement + DeserializeOwned, T: node::IdxType + DeserializeOwn
         Ok(instance)
     }
 
-    fn store_to_bytes(&mut self) -> Result<Vec<u8>, &'static str> {
+    pub fn store_to_bytes(&mut self) -> Result<Vec<u8>, &'static str> {
         self._id2neighbor_tmp = Vec::with_capacity(self._id2neighbor.len());
         for i in 0..self._id2neighbor.len() {
             let mut tmp = Vec::with_capacity(self._id2neighbor[i].len());
