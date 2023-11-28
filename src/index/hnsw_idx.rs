@@ -722,8 +722,8 @@ impl<E: node::FloatElement + DeserializeOwned, T: node::IdxType + DeserializeOwn
 impl<E: node::FloatElement + DeserializeOwned, T: node::IdxType + DeserializeOwned>
     HNSWIndex<E, T>
 {
-    pub fn load_from_bytes(data: &[u8]) -> Result<Self, &'static str> {
-        let mut instance: HNSWIndex<E, T> = bincode::deserialize(data).unwrap();
+    pub fn load_from_bytes(data: &[u8]) -> Result<Self, bincode::Error> {
+        let mut instance: HNSWIndex<E, T> = bincode::deserialize(data)?;
         instance._nodes = instance
             ._nodes_tmp
             .iter()
@@ -746,7 +746,7 @@ impl<E: node::FloatElement + DeserializeOwned, T: node::IdxType + DeserializeOwn
 
         instance._item2id = HashMap::new();
         for iter in instance._item2id_tmp.iter() {
-            let (k, v) = &*iter;
+            let (k, v) = iter;
             instance._item2id.insert(k.clone(), *v);
         }
 
@@ -762,7 +762,7 @@ impl<E: node::FloatElement + DeserializeOwned, T: node::IdxType + DeserializeOwn
         Ok(instance)
     }
 
-    pub fn store_to_bytes(&mut self) -> Result<Vec<u8>, &'static str> {
+    pub fn store_to_bytes(&mut self) -> Result<Vec<u8>, bincode::Error> {
         self._id2neighbor_tmp = Vec::with_capacity(self._id2neighbor.len());
         for i in 0..self._id2neighbor.len() {
             let mut tmp = Vec::with_capacity(self._id2neighbor[i].len());
@@ -788,6 +788,6 @@ impl<E: node::FloatElement + DeserializeOwned, T: node::IdxType + DeserializeOwn
             self._delete_ids_tmp.push(*iter);
         }
 
-        Result::Ok(bincode::serialize(&self).unwrap())
+        bincode::serialize(&self)
     }
 }
