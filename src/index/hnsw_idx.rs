@@ -718,3 +718,76 @@ impl<E: node::FloatElement + DeserializeOwned, T: node::IdxType + DeserializeOwn
         Result::Ok(())
     }
 }
+
+impl<E: node::FloatElement + DeserializeOwned, T: node::IdxType + DeserializeOwned>
+    HNSWIndex<E, T>
+{
+    fn load_from_bytes(data: &[u8]) -> Result<Self, &'static str> {
+        let mut instance: HNSWIndex<E, T> = bincode::deserialize(data).unwrap();
+        instance._nodes = instance
+            ._nodes_tmp
+            .iter()
+            .map(|x| Box::new(x.clone()))
+            .collect();
+        instance._id2neighbor = Vec::with_capacity(instance._id2neighbor_tmp.len());
+        for i in 0..instance._id2neighbor_tmp.len() {
+            let mut tmp = Vec::with_capacity(instance._id2neighbor_tmp[i].len());
+            for j in 0..instance._id2neighbor_tmp[i].len() {
+                tmp.push(RwLock::new(instance._id2neighbor_tmp[i][j].clone()));
+            }
+            instance._id2neighbor.push(tmp);
+        }
+        instance._id2neighbor0 = Vec::with_capacity(instance._id2neighbor0_tmp.len());
+        for i in 0..instance._id2neighbor0_tmp.len() {
+            instance
+                ._id2neighbor0
+                .push(RwLock::new(instance._id2neighbor0_tmp[i].clone()));
+        }
+
+        instance._item2id = HashMap::new();
+        for iter in instance._item2id_tmp.iter() {
+            let (k, v) = &*iter;
+            instance._item2id.insert(k.clone(), *v);
+        }
+
+        instance._delete_ids = HashSet::new();
+        for iter in instance._delete_ids_tmp.iter() {
+            instance._delete_ids.insert(*iter);
+        }
+        instance._id2neighbor_tmp.clear();
+        instance._id2neighbor0_tmp.clear();
+        instance._nodes_tmp.clear();
+        instance._item2id_tmp.clear();
+        instance._delete_ids_tmp.clear();
+        Ok(instance)
+    }
+
+    fn store_to_bytes(&mut self) -> Result<Vec<u8>, &'static str> {
+        self._id2neighbor_tmp = Vec::with_capacity(self._id2neighbor.len());
+        for i in 0..self._id2neighbor.len() {
+            let mut tmp = Vec::with_capacity(self._id2neighbor[i].len());
+            for j in 0..self._id2neighbor[i].len() {
+                tmp.push(self._id2neighbor[i][j].read().unwrap().clone());
+            }
+            self._id2neighbor_tmp.push(tmp);
+        }
+
+        self._id2neighbor0_tmp = Vec::with_capacity(self._id2neighbor0.len());
+        for i in 0..self._id2neighbor0.len() {
+            self._id2neighbor0_tmp
+                .push(self._id2neighbor0[i].read().unwrap().clone());
+        }
+
+        self._nodes_tmp = self._nodes.iter().map(|x| *x.clone()).collect();
+        self._item2id_tmp = Vec::with_capacity(self._item2id.len());
+        for (k, v) in &self._item2id {
+            self._item2id_tmp.push((k.clone(), *v));
+        }
+        self._delete_ids_tmp = Vec::new();
+        for iter in &self._delete_ids {
+            self._delete_ids_tmp.push(*iter);
+        }
+
+        Result::Ok(bincode::serialize(&self).unwrap())
+    }
+}
